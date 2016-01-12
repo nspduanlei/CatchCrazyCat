@@ -1,6 +1,7 @@
 package com.duanlei.catchcrazycat;
 
 import android.content.Context;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -266,7 +267,8 @@ public class Playground extends SurfaceView implements View.OnTouchListener {
                         break;
 
                     case Dot.STATUS_IN:
-                        paint.setColor(0xFFFF0000);
+                        //paint.setColor(0xFFFF0000);
+                        paint.setColor(0xFFEEEEEE);
                         break;
 
                     case Dot.STATUS_ON:
@@ -278,6 +280,13 @@ public class Playground extends SurfaceView implements View.OnTouchListener {
 
                 canvas.drawOval(new RectF(one.getX() * dotWidth + offset, one.getY() * dotWidth,
                         (one.getX() + 1) * dotWidth + offset, (one.getY() + 1) * dotWidth), paint);
+
+
+                if (one.getStatus() == Dot.STATUS_IN) {
+                    canvas.drawBitmap(
+                            BitmapFactory.decodeResource(getResources(), R.mipmap.stay_1),
+                            cat.getX() * dotWidth + offset, cat.getY() * dotWidth - 150, paint);
+                }
             }
         }
 
