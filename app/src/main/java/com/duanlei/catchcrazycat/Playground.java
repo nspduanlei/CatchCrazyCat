@@ -11,6 +11,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Toast;
 
+import java.util.HashMap;
 import java.util.Vector;
 
 /**
@@ -32,7 +33,6 @@ public class Playground extends SurfaceView implements View.OnTouchListener {
      * 元素的宽度
      */
     private int dotWidth;
-
 
     /**
      * 默认添加的路障数量
@@ -129,15 +129,20 @@ public class Playground extends SurfaceView implements View.OnTouchListener {
     private int getDistance(Dot one, int dir) {
 
         int distance = 0;
+        if (isAtEdge(one)) {
+            return 1;
+        }
+
         Dot ori = one, next;
 
         while (true) {
             next = getNeighbour(ori, dir);
 
-            if (next.getStatus() == Dot.STATUS_ON) {
+            if (next.getStatus() == Dot.STATUS_ON) {//遇到路障返回负数路径长度
                 return distance * -1;
             }
-            if (isAtEdge(next)) {
+
+            if (isAtEdge(next)) { //能直接走到边缘返回真是路径长度
                 distance++;
                 return distance;
             }
@@ -155,6 +160,10 @@ public class Playground extends SurfaceView implements View.OnTouchListener {
         one.setStatus(Dot.STATUS_IN);
         getDot(cat.getX(), cat.getY()).setStatus(Dot.STATUS_OFF);
         cat.setXY(one.getX(), one.getY());
+
+        if (isAtEdge(cat)) {
+            lose();
+        }
     }
 
     /**
@@ -166,19 +175,55 @@ public class Playground extends SurfaceView implements View.OnTouchListener {
             return;
         }
 
+        //存储6个方向上可行走的路径
         Vector<Dot> available = new Vector<>();
+        Vector<Dot> positive = new Vector<>();
+        HashMap<Dot, Integer> al = new HashMap<>();
         for (int i = 1; i < 7; i++) {
             Dot n = getNeighbour(cat, i);
 
             if (n.getStatus() == Dot.STATUS_OFF) {
                 available.add(n);
+                al.put(n, i);
+
+                //该点可以直接到达边缘
+                if (getDistance(n, i) > 0) {
+                    positive.add(n);
+                }
+            }
+        }
+
+        if (available.size() == 0) {
+            win();
+        } else if (available.size() == 1) {
+            MoveTo(available.get(0));
+        } else {
+            Dot best = null;
+            if (positive.size() != 0) { //存在可以到达屏幕边缘的走向
+                int min = 999;
+                for (int i = 0; i < positive.size(); i++) {
+                    int a = getDistance(positive.get(i), al.get(positive.get(i)));
+                    if (a < min) {
+                        min = a;
+                        best = positive.get(i);
+                    }
+                }
+            } else { //所有方向都存在路障
+                int max = 0;
+                for (int i=0; i < available.size(); i++) {
+                    int k = getDistance(available.get(i), al.get(available.get(i)));
+                    if (k < max) {
+                        max = k;
+                        best = available.get(i);
+                    }
+                }
             }
 
-            if (available.size() == 0) {
+            if (best == null) {
                 win();
-            } else {
-                MoveTo(available.get(0));
+                return;
             }
+            MoveTo(best);
         }
     }
 
